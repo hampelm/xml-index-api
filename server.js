@@ -29,7 +29,8 @@ function pgError(error) {
 
 app.get('/search', function (req, res) {
   var name = req.query.name;
-  var ein = req.query.ein
+  var ein = req.query.ein;
+  var entries;
 
   console.log("GOT PARAMS", req.query);
 
@@ -42,20 +43,28 @@ app.get('/search', function (req, res) {
   // 
 
   if (name) {
-    var entries = pool.query('SELECT * FROM ( SELECT * FROM xml_index, plainto_tsquery(($1)) AS q  WHERE (tsv @@ q)) AS t1 ORDER BY ts_rank_cd(t1.tsv, plainto_tsquery(($1))) DESC LIMIT 100;',
+    entries = pool.query('SELECT * FROM ( SELECT * FROM xml_index, plainto_tsquery(($1)) AS q  WHERE (tsv @@ q)) AS t1 ORDER BY ts_rank_cd(t1.tsv, plainto_tsquery(($1))) DESC LIMIT 100;',
       [name])
     .then(function(data) {
-      res.send(data.rows);
+      var rows = _.map(data.rows, function(row) {
+        row.url = 'https://s3.amazonaws.com/irs-form-990/' + row.OBJECT_ID + '_public.xml';
+        return row;
+      });
+      res.send(rows);
     })
     .catch(pgError);
   }
 
   if (ein) {
-    var entries = pool.query('SELECT * FROM xml_index where "EIN"=($1);',
+    entries = pool.query('SELECT * FROM xml_index where "EIN"=($1);',
       [ein])
     .then(function(data) {
       if (data.rows.length) {
-        res.send(data.rows);
+        var rows = _.map(data.rows, function(row) {
+          row.url = 'https://s3.amazonaws.com/irs-form-990/' + row.OBJECT_ID + '_public.xml';
+          return row;
+        });
+        res.send(rows);
         return;
       }
       res.status(404).send('EIN not found ' + ein);
