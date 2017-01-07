@@ -1,7 +1,14 @@
-IRS 990 XML Data Index API
+## Using the app
+
+Search by name or EIN:
+http://irs-xml-search.herokuapp.com/search?name=focus%20hope
+http://localhost:3000/search?ein=201585919
+
+## Dev notes 
 
 Jeez that's a long name. 
 
+Real dev notes coming soon.
 
 Data is in /tmp/xml
 
