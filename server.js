@@ -32,15 +32,13 @@ app.get('/search', function (req, res) {
   var ein = req.query.ein;
   var entries;
 
-  console.log("GOT PARAMS", req.query);
-
-  if ((ein && name) || 
+  if ((ein && name) ||
       (!ein && !name)) {
     res.status(500).send('Please send an ein or name parameter, but not both.');
   }
 
   // TODO: Handle more than 100 results
-  // 
+  //
 
   if (name) {
     entries = pool.query('SELECT * FROM ( SELECT * FROM xml_index, plainto_tsquery(($1)) AS q  WHERE (tsv @@ q)) AS t1 ORDER BY ts_rank_cd(t1.tsv, plainto_tsquery(($1))) DESC LIMIT 100;',
